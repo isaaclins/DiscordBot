@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from settings import bot_token
+from settings import *
 import aiohttp
 
 intents = discord.Intents.default()
@@ -22,7 +22,7 @@ async def ping(ctx):
 @bot.command(name='kids')
 async def smash_or_pass(ctx):
     # Replace 'YOUR_ACCESS_TOKEN' with the actual access token from the waifu API
-    headers = {"Authorization": "MTA2NzgxODY5NDEzMjEyNTcxNg--.MTcwNzQ3NTk5Nw--.5ceaf754e3a3"}
+    headers = {"Authorization": waifu_token}
     url = "https://waifu.it/api/v4/waifu"
     
     # Make a request to the waifu API
@@ -48,10 +48,30 @@ async def smash_or_pass(ctx):
     await ctx.send(embed=embed)
 
 
+@bot.command(name='men')
+async def gimmieMen(ctx):
+    headers = {"Authorization": waifu_token}
+    url = "https://waifu.it/api/v4/husbando"
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers) as response:
+            data = await response.json()
 
-@bot.command(name='hugs')
+    # Extracting information from the API response
+    husbando_name = data['name']['userPreferred']
+    image_url = data['image']['large']
+    favorites = data['favourites']
+    age = data['age'] if 'age' in data and data['age'] is not None else 'Unknown'
 
+    # Creating an embed with husbando information
+    embed = discord.Embed(title=f"Gimmie Men: {husbando_name}", color=discord.Color.blurple())
+    embed.set_image(url=image_url)
+    embed.add_field(name="Name", value=husbando_name, inline=True)
+    embed.add_field(name="Age", value=age, inline=True)
+    embed.add_field(name="Favorites", value=favorites, inline=True)
+    embed.add_field(name="AniList", value=f"[AniList Page]({data['siteUrl']})", inline=False)
 
     await ctx.send(embed=embed)
+
     
 bot.run(bot_token)
